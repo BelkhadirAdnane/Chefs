@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -8,6 +9,9 @@ export default function SignUp() {
     firstName: '',
     lastName: '',
     email: '',
+    dateOfBirth: '',
+    cin: '',
+    can: '',
     phone: '',
     role: 'member',
     password: '',
@@ -34,6 +38,11 @@ export default function SignUp() {
         return;
       }
 
+      if (!formData.cin || !formData.can) {
+        setError('CIN et CAN sont obligatoires');
+        return;
+      }
+
       if (formData.password !== formData.confirmPassword) {
         setError('Les mots de passe ne correspondent pas');
         return;
@@ -44,11 +53,44 @@ export default function SignUp() {
         return;
       }
 
-      // TODO: Integrate with Supabase Auth
-      setSuccess(true);
-      setTimeout(() => navigate('/login'), 2000);
+      // Sign up with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) {
+        setError(authError.message || 'Erreur lors de la création du compte');
+        return;
+      }
+
+      if (authData.user) {
+        // Create chef profile in the database
+        const { error: profileError } = await supabase
+          .from('chef_profiles')
+          .insert({
+            id: authData.user.id,
+            email: formData.email,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            date_of_birth: formData.dateOfBirth || null,
+            cin: formData.cin,
+            can: formData.can,
+            phone: formData.phone,
+            role: formData.role,
+          });
+
+        if (profileError) {
+          setError('Erreur lors de la création du profil');
+          return;
+        }
+
+        setSuccess(true);
+        setTimeout(() => navigate('/login'), 2000);
+      }
     } catch (err) {
       setError('Erreur lors de la création du compte');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +136,7 @@ export default function SignUp() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom
+                  Nom *
                 </label>
                 <input
                   type="text"
@@ -103,11 +145,12 @@ export default function SignUp() {
                   onChange={handleChange}
                   placeholder="Dupont"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Prénom
+                  Prénom *
                 </label>
                 <input
                   type="text"
@@ -116,6 +159,7 @@ export default function SignUp() {
                   onChange={handleChange}
                   placeholder="Jean"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
                 />
               </div>
             </div>
@@ -123,7 +167,7 @@ export default function SignUp() {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Email *
               </label>
               <input
                 type="email"
@@ -132,7 +176,54 @@ export default function SignUp() {
                 onChange={handleChange}
                 placeholder="chef@shm.org"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                required
               />
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date de naissance
+              </label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+              />
+            </div>
+
+            {/* CIN and CAN Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CIN (Carte Nationale) *
+                </label>
+                <input
+                  type="text"
+                  name="cin"
+                  value={formData.cin}
+                  onChange={handleChange}
+                  placeholder="Numéro CIN"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CAN (Code Carte) *
+                </label>
+                <input
+                  type="text"
+                  name="can"
+                  value={formData.can}
+                  onChange={handleChange}
+                  placeholder="Code CAN"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+              </div>
             </div>
 
             {/* Phone */}
@@ -171,7 +262,7 @@ export default function SignUp() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mot de passe
+                Mot de passe *
               </label>
               <input
                 type="password"
@@ -180,6 +271,7 @@ export default function SignUp() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                required
               />
               <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
             </div>
@@ -187,7 +279,7 @@ export default function SignUp() {
             {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirmer le mot de passe
+                Confirmer le mot de passe *
               </label>
               <input
                 type="password"
@@ -196,6 +288,7 @@ export default function SignUp() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                required
               />
             </div>
 

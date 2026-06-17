@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -19,10 +20,19 @@ export default function ForgotPassword() {
         return;
       }
 
-      // TODO: Integrate with Supabase Auth password reset
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) {
+        setError(resetError.message || 'Erreur lors de l\'envoi du lien');
+        return;
+      }
+
       setSuccess(true);
     } catch (err) {
       setError('Erreur lors de l\'envoi du lien de réinitialisation');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }

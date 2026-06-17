@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,18 +16,31 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // TODO: Integrate with Supabase Auth
-      // For now, basic validation
       if (!email || !password) {
         setError('Email et mot de passe requis');
         return;
       }
 
-      // Simulate login
-      localStorage.setItem('user', JSON.stringify({ email }));
-      navigate('/dashboard');
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message || 'Email ou mot de passe incorrect');
+        return;
+      }
+
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify({
+          id: data.user.id,
+          email: data.user.email
+        }));
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError('Erreur de connexion. Veuillez réessayer.');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
