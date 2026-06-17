@@ -14,10 +14,14 @@ export default function Header({ onMenuClick, userName = 'Chef' }: HeaderProps) 
 
   return (
     <header className="shm-gradient sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo + Title */}
         <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition">
-          <div className="text-white text-2xl md:text-3xl font-bold">SHM</div>
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets%2Fa9ce189e82c94247a809e38e319392c1%2Ff8865e41e45c4ddf97ad76d8d6891080?format=webp&width=100&height=100"
+            alt="SHM Logo"
+            className="w-12 h-12 md:w-14 md:h-14"
+          />
           <div className="hidden sm:block">
             <p className="text-white font-semibold text-sm">Portail des Chefs</p>
             <p className="text-white/70 text-xs">Gestion & Supervision</p>

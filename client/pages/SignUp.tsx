@@ -60,9 +60,11 @@ export default function SignUp() {
         <div className="bg-white rounded-lg shadow-xl p-8 animate-fade-in">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="shm-gradient text-white text-4xl font-bold rounded-lg p-4 inline-flex mb-4 w-16 h-16 items-center justify-center">
-              SHM
-            </div>
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets%2Fa9ce189e82c94247a809e38e319392c1%2Ff8865e41e45c4ddf97ad76d8d6891080?format=webp&width=120&height=120"
+              alt="SHM Logo"
+              className="w-24 h-24 mx-auto mb-4"
+            />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h1>
             <p className="text-gray-600">Inscrivez-vous en tant que chef SHM</p>
           </div>
