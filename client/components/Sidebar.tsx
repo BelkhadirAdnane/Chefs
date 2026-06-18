@@ -1,5 +1,6 @@
 import { X, LogOut, Home, User, Users, FileText, Calendar, Lightbulb } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { logoutChef } from '../lib/authService';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,7 +9,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    logoutChef();
     window.location.href = '/login';
   };
 

@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { registerChef } from '../lib/authService';
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
     dateOfBirth: '',
     cin: '',
     can: '',
@@ -33,7 +32,7 @@ export default function SignUp() {
 
     try {
       // Validation
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      if (!formData.firstName || !formData.lastName || !formData.password) {
         setError('Tous les champs requis doivent être remplis');
         return;
       }
@@ -53,38 +52,24 @@ export default function SignUp() {
         return;
       }
 
-      // Sign up with Supabase
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
+      // Register chef with CIN as identifier
+      const { data, error: regError } = await registerChef({
+        cin: formData.cin,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        can: formData.can,
+        phone: formData.phone,
+        role: formData.role,
         password: formData.password,
       });
 
-      if (authError) {
-        setError(authError.message || 'Erreur lors de la création du compte');
+      if (regError) {
+        setError(regError);
         return;
       }
 
-      if (authData.user) {
-        // Create chef profile in the database
-        const { error: profileError } = await supabase
-          .from('chef_profiles')
-          .insert({
-            id: authData.user.id,
-            email: formData.email,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            date_of_birth: formData.dateOfBirth || null,
-            cin: formData.cin,
-            can: formData.can,
-            phone: formData.phone,
-            role: formData.role,
-          });
-
-        if (profileError) {
-          setError('Erreur lors de la création du profil');
-          return;
-        }
-
+      if (data) {
         setSuccess(true);
         setTimeout(() => navigate('/login'), 2000);
       }
@@ -162,22 +147,6 @@ export default function SignUp() {
                   required
                 />
               </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="chef@shm.org"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
-                required
-              />
             </div>
 
             {/* Date of Birth */}

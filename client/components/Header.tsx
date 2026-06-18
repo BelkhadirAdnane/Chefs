@@ -1,14 +1,18 @@
 import { LogOut, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { logoutChef, getCurrentChef } from '../lib/authService';
 
 interface HeaderProps {
   onMenuClick: () => void;
   userName?: string;
 }
 
-export default function Header({ onMenuClick, userName = 'Chef' }: HeaderProps) {
+export default function Header({ onMenuClick }: HeaderProps) {
+  const currentChef = getCurrentChef();
+  const displayName = currentChef?.firstName || 'Chef';
+
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    logoutChef();
     window.location.href = '/login';
   };
 
@@ -51,8 +55,8 @@ export default function Header({ onMenuClick, userName = 'Chef' }: HeaderProps) 
           {/* User Info - Desktop Only */}
           <div className="hidden md:flex items-center gap-3">
             <div className="text-right">
-              <p className="text-white font-semibold text-sm">{userName}</p>
-              <p className="text-white/70 text-xs">Chef</p>
+              <p className="text-white font-semibold text-sm">{displayName}</p>
+              <p className="text-white/70 text-xs">{currentChef?.role === 'main' ? 'Chef Principal' : 'Chef'}</p>
             </div>
             <button
               onClick={handleLogout}

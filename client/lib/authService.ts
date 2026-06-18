@@ -1,0 +1,144 @@
+import { supabase } from './supabase';
+import crypto from 'crypto-js';
+
+// Simple password hashing (in production, use bcrypt on backend)
+export function hashPassword(password: string): string {
+  return crypto.SHA256(password).toString();
+}
+
+export async function registerChef(data: {
+  cin: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth?: string;
+  can: string;
+  phone: string;
+  role: string;
+  password: string;
+}) {
+  try {
+    const passwordHash = hashPassword(data.password);
+
+    // Check if CIN already exists
+    const { data: existing, error: checkError } = await supabase
+      .from('user_chefs')
+      .select('cin')
+      .eq('cin', data.cin)
+      .single();
+
+    if (existing) {
+      return {
+        error: 'Ce numéro CIN est déjà enregistré',
+        data: null,
+      };
+    }
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned (which is good)
+      throw checkError;
+    }
+
+    // Insert new chef
+    const { data: newChef, error } = await supabase
+      .from('user_chefs')
+      .insert({
+        cin: data.cin,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        date_of_birth: data.dateOfBirth || null,
+        can: data.can,
+        phone: data.phone,
+        role: data.role,
+        password_hash: passwordHash,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return {
+        error: error.message || 'Erreur lors de l\'inscription',
+        data: null,
+      };
+    }
+
+    return {
+      error: null,
+      data: newChef,
+    };
+  } catch (err) {
+    console.error('Registration error:', err);
+    return {
+      error: 'Erreur lors de l\'inscription',
+      data: null,
+    };
+  }
+}
+
+export async function loginChef(cin: string, password: string) {
+  try {
+    const passwordHash = hashPassword(password);
+
+    const { data: chef, error } = await supabase
+      .from('user_chefs')
+      .select('*')
+      .eq('cin', cin)
+      .single();
+
+    if (error || !chef) {
+      return {
+        error: 'CIN ou mot de passe incorrect',
+        data: null,
+      };
+    }
+
+    if (chef.password_hash !== passwordHash) {
+      return {
+        error: 'CIN ou mot de passe incorrect',
+        data: null,
+      };
+    }
+
+    // Store session
+    const sessionData = {
+      id: chef.id,
+      cin: chef.cin,
+      firstName: chef.first_name,
+      lastName: chef.last_name,
+      role: chef.role,
+    };
+
+    localStorage.setItem('chef_session', JSON.stringify(sessionData));
+
+    return {
+      error: null,
+      data: chef,
+    };
+  } catch (err) {
+    console.error('Login error:', err);
+    return {
+      error: 'Erreur lors de la connexion',
+      data: null,
+    };
+  }
+}
+
+export function logoutChef() {
+  localStorage.removeItem('chef_session');
+  localStorage.removeItem('user');
+}
+
+export function getCurrentChef() {
+  const session = localStorage.getItem('chef_session');
+  if (session) {
+    try {
+      return JSON.parse(session);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export function isChefLoggedIn(): boolean {
+  return !!getCurrentChef();
+}

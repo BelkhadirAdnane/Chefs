@@ -12,29 +12,29 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export type Database = {
   public: {
     Tables: {
-      chef_profiles: {
+      user_chefs: {
         Row: {
           id: string;
-          email: string;
+          cin: string;
           first_name: string;
           last_name: string;
           date_of_birth: string | null;
-          cin: string;
           can: string;
           phone: string;
           role: string;
+          password_hash: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
-          email: string;
+          cin: string;
           first_name: string;
           last_name: string;
           date_of_birth?: string | null;
-          cin: string;
           can: string;
           phone: string;
           role: string;
+          password_hash: string;
         };
       };
       members: {

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { IdCard, Lock, AlertCircle } from 'lucide-react';
+import { loginChef } from '../lib/authService';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [cin, setCin] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,26 +16,19 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      if (!email || !password) {
-        setError('Email et mot de passe requis');
+      if (!cin || !password) {
+        setError('CIN et mot de passe requis');
         return;
       }
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error: authError } = await loginChef(cin, password);
 
       if (authError) {
-        setError(authError.message || 'Email ou mot de passe incorrect');
+        setError(authError);
         return;
       }
 
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify({
-          id: data.user.id,
-          email: data.user.email
-        }));
+      if (data) {
         navigate('/dashboard');
       }
     } catch (err) {
@@ -71,18 +64,18 @@ export default function Login() {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email */}
+            {/* CIN */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email ou Identifiant
+                Numéro CIN
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                <IdCard className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="chef@shm.org"
+                  type="text"
+                  value={cin}
+                  onChange={(e) => setCin(e.target.value)}
+                  placeholder="Votre numéro CIN"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
                 />
               </div>
