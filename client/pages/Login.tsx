@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IdCard, Lock, AlertCircle } from 'lucide-react';
 import { loginChef } from '../lib/authService';
+import LoginHelpWidget from '../components/LoginHelpWidget';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,29 +19,49 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      console.log('[DEBUG LOGIN] Données du formulaire:');
+      console.log('  firstName:', `"${firstName}"`);
+      console.log('  lastName:', `"${lastName}"`);
+      console.log('  cin:', `"${cin}"`);
+      console.log('  password:', `"${password}"`);
+
       if (!firstName || !lastName || !cin || !password) {
         setError('Tous les champs sont requis');
+        console.log('[DEBUG LOGIN] Erreur: champs manquants');
         return;
       }
 
+      console.log('[DEBUG LOGIN] Appel du service loginChef...');
       const { data, error: authError } = await loginChef(cin, password);
+
+      console.log('[DEBUG LOGIN] Réponse du service:');
+      console.log('  data:', data);
+      console.log('  error:', authError);
 
       if (authError) {
         setError(authError);
+        console.log('[DEBUG LOGIN] Erreur d\'authentification:', authError);
         return;
       }
 
       if (data) {
-        // Verify name matches
-        if (data.first_name !== firstName || data.last_name !== lastName) {
+        console.log('[DEBUG LOGIN] Vérification du nom/prénom:');
+        console.log('  Formulaire - firstName:', `"${firstName}"`, '| lastName:', `"${lastName}"`);
+        console.log('  BD - first_name:', `"${data.first_name}"`, '| last_name:', `"${data.last_name}"`);
+
+        // Verify name matches (case-insensitive and trimmed)
+        if (data.first_name.trim().toLowerCase() !== firstName.trim().toLowerCase() ||
+            data.last_name.trim().toLowerCase() !== lastName.trim().toLowerCase()) {
           setError('Le nom ou prénom ne correspond pas au CIN');
+          console.log('[DEBUG LOGIN] Erreur: nom/prénom ne correspond pas');
           return;
         }
+        console.log('[DEBUG LOGIN] Vérification OK - redirection vers dashboard');
         navigate('/dashboard');
       }
     } catch (err) {
       setError('Erreur de connexion. Veuillez réessayer.');
-      console.error(err);
+      console.error('[ERROR LOGIN]', err);
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +69,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <LoginHelpWidget />
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8 animate-fade-in">
           {/* Header */}

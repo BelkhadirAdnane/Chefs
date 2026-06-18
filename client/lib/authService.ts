@@ -79,16 +79,29 @@ export async function registerChef(data: {
 
 export async function loginChef(cin: string, password: string) {
   try {
+    const trimmedCin = cin.trim();
     const passwordHash = hashPassword(password);
+
+    console.log('[DEBUG] loginChef: Tentative de connexion');
+    console.log('[DEBUG] CIN saisi:', `"${cin}"`, '| CIN trimé:', `"${trimmedCin}"`);
 
     const { data: chef, error } = await supabase
       .from('user_chefs')
       .select('*')
-      .eq('cin', cin.trim())
+      .eq('cin', trimmedCin)
       .maybeSingle();
 
+    console.log('[DEBUG] Réponse Supabase - error:', error);
+    console.log('[DEBUG] Réponse Supabase - chef données:', chef ? {
+      id: chef.id,
+      cin: chef.cin,
+      first_name: chef.first_name,
+      last_name: chef.last_name,
+      password_hash: chef.password_hash ? '[HASH EXISTS]' : '[NO HASH]'
+    } : 'null');
+
     if (error) {
-      console.error('Login error:', error);
+      console.error('[ERROR] Erreur Supabase:', error);
       return {
         error: 'CIN ou mot de passe incorrect',
         data: null,
@@ -96,18 +109,27 @@ export async function loginChef(cin: string, password: string) {
     }
 
     if (!chef) {
+      console.log('[DEBUG] Chef non trouvé avec le CIN:', trimmedCin);
       return {
         error: 'CIN ou mot de passe incorrect',
         data: null,
       };
     }
 
+    console.log('[DEBUG] Chef trouvé:', chef.first_name, chef.last_name);
+    console.log('[DEBUG] Hash saisi:', passwordHash.substring(0, 10) + '...');
+    console.log('[DEBUG] Hash BD:', chef.password_hash.substring(0, 10) + '...');
+    console.log('[DEBUG] Les hashes correspondent?', chef.password_hash === passwordHash);
+
     if (chef.password_hash !== passwordHash) {
+      console.log('[ERROR] Mot de passe incorrect');
       return {
         error: 'CIN ou mot de passe incorrect',
         data: null,
       };
     }
+
+    console.log('[DEBUG] Authentification réussie! Création de la session...');
 
     // Store session
     const sessionData = {
@@ -118,13 +140,14 @@ export async function loginChef(cin: string, password: string) {
     };
 
     localStorage.setItem('chef_session', JSON.stringify(sessionData));
+    console.log('[DEBUG] Session stockée');
 
     return {
       error: null,
       data: chef,
     };
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('[ERROR] Exception dans loginChef:', err);
     return {
       error: 'Erreur lors de la connexion',
       data: null,
