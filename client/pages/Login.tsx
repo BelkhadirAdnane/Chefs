@@ -5,6 +5,8 @@ import { loginChef } from '../lib/authService';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [cin, setCin] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,8 +18,8 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      if (!cin || !password) {
-        setError('CIN et mot de passe requis');
+      if (!firstName || !lastName || !cin || !password) {
+        setError('Tous les champs sont requis');
         return;
       }
 
@@ -29,6 +31,11 @@ export default function Login() {
       }
 
       if (data) {
+        // Verify name matches
+        if (data.first_name !== firstName || data.last_name !== lastName) {
+          setError('Le nom ou prénom ne correspond pas au CIN');
+          return;
+        }
         navigate('/dashboard');
       }
     } catch (err) {
@@ -64,10 +71,40 @@ export default function Login() {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
+            {/* Name Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom *
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Dupont"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prénom *
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Jean"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+              </div>
+            </div>
+
             {/* CIN */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Numéro CIN
+                Numéro CIN *
               </label>
               <div className="relative">
                 <IdCard className="absolute left-3 top-3 text-gray-400" size={20} />
@@ -77,6 +114,7 @@ export default function Login() {
                   onChange={(e) => setCin(e.target.value)}
                   placeholder="Votre numéro CIN"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
                 />
               </div>
             </div>
@@ -84,7 +122,7 @@ export default function Login() {
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe
+                Mot de passe *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
@@ -94,6 +132,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
                 />
               </div>
             </div>
@@ -110,13 +149,9 @@ export default function Login() {
 
           {/* Links */}
           <div className="mt-6 space-y-4">
-            <div className="flex justify-between text-sm">
-              <Link
-                to="/forgot-password"
-                className="text-shm-red hover:text-shm-purple transition-colors"
-              >
-                Mot de passe oublié ?
-              </Link>
+            <div className="text-center text-xs text-gray-500">
+              <p>Vous avez oublié votre mot de passe?</p>
+              <p className="mt-1">Contactez votre administrateur SHM</p>
             </div>
 
             <div className="pt-4 border-t border-gray-200 text-center">
