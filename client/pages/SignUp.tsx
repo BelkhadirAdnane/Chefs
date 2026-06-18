@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { registerChef } from '../lib/authService';
 
 export default function SignUp() {
@@ -18,6 +18,40 @@ export default function SignUp() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const calculatePasswordStrength = (password: string) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    return Math.min(strength, 5);
+  };
+
+  const getPasswordStrengthLabel = (strength: number) => {
+    switch (strength) {
+      case 0:
+      case 1:
+        return { label: 'Faible', color: 'bg-red-500', width: '20%' };
+      case 2:
+        return { label: 'Faible', color: 'bg-orange-500', width: '40%' };
+      case 3:
+        return { label: 'Moyen', color: 'bg-orange-500', width: '60%' };
+      case 4:
+        return { label: 'Bon', color: 'bg-green-500', width: '80%' };
+      case 5:
+        return { label: 'Très fort', color: 'bg-green-600', width: '100%' };
+      default:
+        return { label: '', color: '', width: '0%' };
+    }
+  };
+
+  const passwordStrength = calculatePasswordStrength(formData.password);
+  const strengthInfo = getPasswordStrengthLabel(passwordStrength);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -213,16 +247,61 @@ export default function SignUp() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Mot de passe *
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2 text-gray-600 hover:text-gray-900"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
+              
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-gray-600">Force du mot de passe:</span>
+                    <span className={`text-xs font-semibold ${
+                      passwordStrength <= 1 ? 'text-red-600' :
+                      passwordStrength === 2 ? 'text-orange-600' :
+                      passwordStrength === 3 ? 'text-orange-600' :
+                      'text-green-600'
+                    }`}>
+                      {strengthInfo.label}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-300 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={`h-full ${strengthInfo.color} transition-all duration-300`}
+                      style={{ width: strengthInfo.width }}
+                    />
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600 space-y-1">
+                    <p className={/[a-z]/.test(formData.password) ? 'text-green-600' : ''}>
+                      {/[a-z]/.test(formData.password) ? '✓' : '○'} Minuscules
+                    </p>
+                    <p className={/[A-Z]/.test(formData.password) ? 'text-green-600' : ''}>
+                      {/[A-Z]/.test(formData.password) ? '✓' : '○'} Majuscules
+                    </p>
+                    <p className={/[0-9]/.test(formData.password) ? 'text-green-600' : ''}>
+                      {/[0-9]/.test(formData.password) ? '✓' : '○'} Chiffres
+                    </p>
+                    <p className={/[^a-zA-Z0-9]/.test(formData.password) ? 'text-green-600' : ''}>
+                      {/[^a-zA-Z0-9]/.test(formData.password) ? '✓' : '○'} Caractères spéciaux
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -230,15 +309,33 @@ export default function SignUp() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Confirmer le mot de passe *
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-2 text-gray-600 hover:text-gray-900"
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {formData.password && formData.confirmPassword && (
+                <div className="mt-1">
+                  {formData.password === formData.confirmPassword ? (
+                    <p className="text-xs text-green-600">✓ Les mots de passe correspondent</p>
+                  ) : (
+                    <p className="text-xs text-red-600">✗ Les mots de passe ne correspondent pas</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}

@@ -84,10 +84,18 @@ export async function loginChef(cin: string, password: string) {
     const { data: chef, error } = await supabase
       .from('user_chefs')
       .select('*')
-      .eq('cin', cin)
-      .single();
+      .eq('cin', cin.trim())
+      .maybeSingle();
 
-    if (error || !chef) {
+    if (error) {
+      console.error('Login error:', error);
+      return {
+        error: 'CIN ou mot de passe incorrect',
+        data: null,
+      };
+    }
+
+    if (!chef) {
       return {
         error: 'CIN ou mot de passe incorrect',
         data: null,
@@ -107,7 +115,6 @@ export async function loginChef(cin: string, password: string) {
       cin: chef.cin,
       firstName: chef.first_name,
       lastName: chef.last_name,
-      role: chef.role,
     };
 
     localStorage.setItem('chef_session', JSON.stringify(sessionData));
