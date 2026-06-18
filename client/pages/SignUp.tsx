@@ -12,7 +12,6 @@ export default function SignUp() {
     cin: '',
     can: '',
     phone: '',
-    role: 'member',
     password: '',
     confirmPassword: '',
   });
@@ -60,7 +59,6 @@ export default function SignUp() {
         dateOfBirth: formData.dateOfBirth,
         can: formData.can.trim(),
         phone: formData.phone.trim(),
-        role: formData.role,
         password: formData.password,
       });
 
@@ -208,24 +206,6 @@ export default function SignUp() {
                 placeholder="+212 6XX XXX XXX"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
               />
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fonction/Responsabilité
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
-              >
-                <option value="member">Membre</option>
-                <option value="leader">Chef de patrouille</option>
-                <option value="assistant">Chef adjoint</option>
-                <option value="main">Chef principal</option>
-              </select>
             </div>
 
             {/* Password */}

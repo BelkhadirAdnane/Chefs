@@ -13,7 +13,6 @@ export async function registerChef(data: {
   dateOfBirth?: string;
   can: string;
   phone: string;
-  role: string;
   password: string;
 }) {
   try {
@@ -53,7 +52,6 @@ export async function registerChef(data: {
         date_of_birth: data.dateOfBirth || null,
         can,
         phone,
-        role: data.role,
         password_hash: passwordHash,
       })
       .select()
