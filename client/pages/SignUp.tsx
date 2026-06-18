@@ -32,12 +32,12 @@ export default function SignUp() {
 
     try {
       // Validation
-      if (!formData.firstName || !formData.lastName || !formData.password) {
+      if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.password) {
         setError('Tous les champs requis doivent être remplis');
         return;
       }
 
-      if (!formData.cin || !formData.can) {
+      if (!formData.cin.trim() || !formData.can.trim()) {
         setError('CIN et CAN sont obligatoires');
         return;
       }
@@ -52,14 +52,14 @@ export default function SignUp() {
         return;
       }
 
-      // Register chef with CIN as identifier
+      // Register chef with CIN as identifier (trim all fields)
       const { data, error: regError } = await registerChef({
-        cin: formData.cin,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        cin: formData.cin.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         dateOfBirth: formData.dateOfBirth,
-        can: formData.can,
-        phone: formData.phone,
+        can: formData.can.trim(),
+        phone: formData.phone.trim(),
         role: formData.role,
         password: formData.password,
       });

@@ -18,12 +18,17 @@ export async function registerChef(data: {
 }) {
   try {
     const passwordHash = hashPassword(data.password);
+    const cin = data.cin.trim();
+    const firstName = data.firstName.trim();
+    const lastName = data.lastName.trim();
+    const can = data.can.trim();
+    const phone = data.phone.trim();
 
     // Check if CIN already exists
     const { data: existing, error: checkError } = await supabase
       .from('user_chefs')
       .select('cin')
-      .eq('cin', data.cin)
+      .eq('cin', cin)
       .single();
 
     if (existing) {
@@ -42,12 +47,12 @@ export async function registerChef(data: {
     const { data: newChef, error } = await supabase
       .from('user_chefs')
       .insert({
-        cin: data.cin,
-        first_name: data.firstName,
-        last_name: data.lastName,
+        cin,
+        first_name: firstName,
+        last_name: lastName,
         date_of_birth: data.dateOfBirth || null,
-        can: data.can,
-        phone: data.phone,
+        can,
+        phone,
         role: data.role,
         password_hash: passwordHash,
       })
