@@ -22,6 +22,7 @@ interface Activity {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState<Stats>({
     members: 0,
