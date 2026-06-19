@@ -13,6 +13,10 @@ import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import Members from "./pages/Members";
+import Reports from "./pages/Reports";
+import Sessions from "./pages/Sessions";
+import Ideas from "./pages/Ideas";
 
 const queryClient = new QueryClient();
 
@@ -29,10 +33,10 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/account" element={<PlaceholderPage title="Mon Compte" description="Gérez votre profil et paramètres personnels" />} />
-          <Route path="/members" element={<PlaceholderPage title="Comptes des Membres" description="Supervisez et consultez les informations des membres" />} />
-          <Route path="/reports" element={<PlaceholderPage title="Rapports" description="Consultez et gérez les rapports de séances" />} />
-          <Route path="/sessions" element={<PlaceholderPage title="Séances" description="Organisez et suivez les séances de vos troupes" />} />
-          <Route path="/ideas" element={<PlaceholderPage title="Boîte à Idées" description="Consultez et gérez les idées proposées" />} />
+          <Route path="/members" element={<Members />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/sessions" element={<Sessions />} />
+          <Route path="/ideas" element={<Ideas />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

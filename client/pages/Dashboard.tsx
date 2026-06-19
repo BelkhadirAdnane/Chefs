@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, BarChart3, FileText, Calendar, Lightbulb, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
@@ -214,30 +215,35 @@ export default function Dashboard() {
       label: 'Nombre total de membres',
       value: stats.members,
       color: 'from-blue-500 to-blue-600',
+      route: '/members',
     },
     {
       icon: BarChart3,
       label: 'Nombre de chefs',
       value: stats.chefs,
       color: 'from-purple-500 to-purple-600',
+      route: '/members',
     },
     {
       icon: FileText,
       label: 'Rapports enregistrés',
       value: stats.reports,
       color: 'from-orange-500 to-orange-600',
+      route: '/reports',
     },
     {
       icon: Calendar,
       label: 'Séances organisées',
       value: stats.sessions,
       color: 'from-green-500 to-green-600',
+      route: '/sessions',
     },
     {
       icon: Lightbulb,
       label: 'Idées proposées',
       value: stats.ideas,
       color: 'from-yellow-500 to-yellow-600',
+      route: '/ideas',
     },
   ];
 
@@ -267,10 +273,11 @@ export default function Dashboard() {
             <>
               {/* Statistics Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                {statCards.map(({ icon: Icon, label, value, color }) => (
-                  <div
+                {statCards.map(({ icon: Icon, label, value, color, route }) => (
+                  <button
                     key={label}
-                    className="stat-card group hover:scale-105"
+                    onClick={() => navigate(route)}
+                    className="stat-card group hover:scale-105 cursor-pointer text-left transition-transform"
                   >
                     <div className={`bg-gradient-to-br ${color} p-4 rounded-lg mb-4 inline-block`}>
                       <Icon className="text-white" size={24} />
@@ -281,7 +288,7 @@ export default function Dashboard() {
                       <TrendingUp size={14} />
                       <span>Mise à jour en temps réel</span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
 
