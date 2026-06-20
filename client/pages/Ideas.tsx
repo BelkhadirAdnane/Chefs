@@ -134,8 +134,8 @@ export default function Ideas() {
             </button>
           </div>
 
-          {/* Search and Filter */}
-          <div className="mb-6 space-y-4">
+          {/* Search Bar */}
+          <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
@@ -145,31 +145,6 @@ export default function Ideas() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-shm-red"
               />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex gap-2 flex-wrap">
-              {(['all', 'new', 'in_review', 'approved', 'rejected'] as const).map((status) => {
-                const label = status === 'all' ? 'Tous' : 
-                  status === 'new' ? 'Nouvelles' :
-                  status === 'in_review' ? 'En examen' :
-                  status === 'approved' ? 'Approuvées' :
-                  'Rejetées';
-                
-                return (
-                  <button
-                    key={status}
-                    onClick={() => setFilterStatus(status)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      filterStatus === status
-                        ? 'bg-shm-red text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
             </div>
           </div>
 

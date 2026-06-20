@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Search, Trash2, Edit } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -85,17 +85,11 @@ export default function Members() {
 
         <main className="flex-1 container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="section-title">Gestion des Membres</h1>
-              <p className="text-gray-600">
-                {filteredMembers.length} membre{filteredMembers.length !== 1 ? 's' : ''} au total
-              </p>
-            </div>
-            <button className="bg-gradient-to-r from-shm-red to-shm-purple text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center gap-2">
-              <Plus size={20} />
-              Ajouter un Membre
-            </button>
+          <div className="mb-8">
+            <h1 className="section-title">Gestion des Membres</h1>
+            <p className="text-gray-600">
+              {filteredMembers.length} membre{filteredMembers.length !== 1 ? 's' : ''} au total
+            </p>
           </div>
 
           {/* Search Bar */}

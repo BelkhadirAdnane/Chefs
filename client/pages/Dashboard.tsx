@@ -294,75 +294,40 @@ export default function Dashboard() {
               </div>
 
               {/* Recent Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Activities Section */}
-                <div className="bg-white rounded-lg shadow-md p-6 shm-glow">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                    <div className="bg-shm-red/10 p-2 rounded-lg">
-                      <TrendingUp className="text-shm-red" size={24} />
-                    </div>
-                    Activité Récente
-                  </h2>
-                  
-                  {recentActivity.length > 0 ? (
-                    <div className="space-y-4">
-                      {recentActivity.map(({ type, title, date, icon: Icon }) => (
-                        <div
-                          key={`${type}-${date}`}
-                          className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 p-2 rounded transition-colors"
-                        >
-                          <div className="bg-gray-100 p-3 rounded-lg flex-shrink-0 mt-1">
-                            <Icon className="text-shm-red" size={20} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm line-clamp-2">
-                              {title}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">{date}</p>
-                          </div>
+              <div className="bg-white rounded-lg shadow-md p-6 shm-glow">
+                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                  <div className="bg-shm-red/10 p-2 rounded-lg">
+                    <TrendingUp className="text-shm-red" size={24} />
+                  </div>
+                  Activité Récente
+                </h2>
+
+                {recentActivity.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentActivity.map(({ type, title, date, icon: Icon }) => (
+                      <div
+                        key={`${type}-${date}`}
+                        className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 p-2 rounded transition-colors"
+                      >
+                        <div className="bg-gray-100 p-3 rounded-lg flex-shrink-0 mt-1">
+                          <Icon className="text-shm-red" size={20} />
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm text-center py-8">Aucune activité récente</p>
-                  )}
-
-                  <button className="w-full mt-4 text-shm-red hover:text-shm-purple font-semibold text-sm py-2 transition-colors">
-                    Voir toute l'activité →
-                  </button>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-white rounded-lg shadow-md p-6 shm-glow">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                    <div className="bg-blue-50 p-2 rounded-lg">
-                      <TrendingUp className="text-blue-600" size={24} />
-                    </div>
-                    Actions Rapides
-                  </h2>
-
-                  <div className="space-y-3">
-                    <button className="w-full bg-gradient-to-r from-shm-red to-shm-purple text-white font-semibold py-3 px-4 rounded-lg hover:shadow-lg transition-all duration-200">
-                      Ajouter un Rapport
-                    </button>
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-                      Programmer une Séance
-                    </button>
-                    <button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-                      Consulter les Membres
-                    </button>
-                    <button className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
-                      Gérer les Idées
-                    </button>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm line-clamp-2">
+                            {title}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">{date}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                ) : (
+                  <p className="text-gray-500 text-sm text-center py-8">Aucune activité récente</p>
+                )}
 
-                  {/* Quick Info */}
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-900">
-                      <strong>💡 Conseil:</strong> Les données se mettent à jour en temps réel.
-                    </p>
-                  </div>
-                </div>
+                <button className="w-full mt-4 text-shm-red hover:text-shm-purple font-semibold text-sm py-2 transition-colors">
+                  Voir toute l'activité →
+                </button>
               </div>
             </>
           )}
