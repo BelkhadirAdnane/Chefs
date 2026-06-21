@@ -1,16 +1,18 @@
 import { RequestHandler } from "express";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error("Missing Supabase configuration in server environment");
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Missing Supabase configuration in server environment");
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false },
+  });
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
 
 interface Member {
   id: string;
@@ -28,6 +30,7 @@ interface Member {
 
 export const getMembers: RequestHandler = async (req, res) => {
   try {
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("members")
       .select("*")
