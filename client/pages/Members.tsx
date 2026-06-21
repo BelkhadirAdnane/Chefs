@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Search, Trash2, Edit } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -28,19 +27,14 @@ export default function Members() {
     const fetchMembers = async () => {
       try {
         setIsLoading(true);
-        console.log('[DEBUG] Fetching members from Supabase...');
-        const { data, error } = await supabase
-          .from('members')
-          .select('*')
-          .order('created_at', { ascending: false });
+        console.log('[DEBUG] Fetching members from API...');
+        const response = await fetch('/api/members');
 
-        console.log('[DEBUG] Members response - data:', data, 'error:', error);
-
-        if (error) {
-          console.error('[ERROR] Supabase error:', error.message, error.code);
-          throw error;
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
 
+        const data: Member[] = await response.json();
         console.log('[DEBUG] Members loaded:', data?.length || 0, 'items');
         setMembers(data || []);
       } catch (error) {
@@ -52,28 +46,11 @@ export default function Members() {
 
     fetchMembers();
 
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .channel('members_updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'members' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setMembers((prev) => [payload.new as Member, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setMembers((prev) =>
-              prev.map((m) => (m.id === payload.new.id ? (payload.new as Member) : m))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setMembers((prev) => prev.filter((m) => m.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
+    // Poll for updates every 5 seconds as fallback (no real-time subscription available via API)
+    const interval = setInterval(fetchMembers, 5000);
 
     return () => {
-      subscription.unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 
