@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Trash2, Edit, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Trash2, Edit, Eye, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -16,6 +17,7 @@ interface Report {
 }
 
 export default function Reports() {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,13 +159,35 @@ export default function Reports() {
                       {report.content}
                     </p>
                     <div className="flex justify-end gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors">
+                      <button
+                        onClick={() => {
+                          // Assuming report.content contains PDF URL
+                          if (report.content.includes('http')) {
+                            navigate(`/reports/${report.id}?url=${encodeURIComponent(report.content)}`);
+                          }
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Voir le PDF"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                        <Edit size={18} />
+                      <button
+                        onClick={() => {
+                          if (report.content.includes('http')) {
+                            const link = document.createElement('a');
+                            link.href = report.content;
+                            link.download = `rapport-${report.id}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }
+                        }}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+                        title="Télécharger le PDF"
+                      >
+                        <Download size={18} />
                       </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors">
+                      <button className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Supprimer">
                         <Trash2 size={18} />
                       </button>
                     </div>

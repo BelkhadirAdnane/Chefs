@@ -28,15 +28,23 @@ export default function Members() {
     const fetchMembers = async () => {
       try {
         setIsLoading(true);
+        console.log('[DEBUG] Fetching members from Supabase...');
         const { data, error } = await supabase
           .from('members')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        console.log('[DEBUG] Members response - data:', data, 'error:', error);
+
+        if (error) {
+          console.error('[ERROR] Supabase error:', error.message, error.code);
+          throw error;
+        }
+
+        console.log('[DEBUG] Members loaded:', data?.length || 0, 'items');
         setMembers(data || []);
       } catch (error) {
-        console.error('Error fetching members:', error);
+        console.error('[ERROR] Failed to fetch members:', error);
       } finally {
         setIsLoading(false);
       }

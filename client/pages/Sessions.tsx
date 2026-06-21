@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit, Calendar, MapPin } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, Calendar, MapPin, X } from 'lucide-react';
+import SessionForm5W from '../components/SessionForm5W';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -22,20 +23,29 @@ export default function Sessions() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     const fetchSessions = async () => {
       try {
         setIsLoading(true);
+        console.log('[DEBUG] Fetching sessions from Supabase...');
         const { data, error } = await supabase
           .from('sessions')
           .select('*')
           .order('start_date', { ascending: false });
 
-        if (error) throw error;
+        console.log('[DEBUG] Sessions response - data:', data, 'error:', error);
+
+        if (error) {
+          console.error('[ERROR] Supabase error:', error.message, error.code);
+          throw error;
+        }
+
+        console.log('[DEBUG] Sessions loaded:', data?.length || 0, 'items');
         setSessions(data || []);
       } catch (error) {
-        console.error('Error fetching sessions:', error);
+        console.error('[ERROR] Failed to fetch sessions:', error);
       } finally {
         setIsLoading(false);
       }
