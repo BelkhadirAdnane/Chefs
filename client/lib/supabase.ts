@@ -1,7 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Frontend needs VITE_ prefixed variables set in environment
+// Fallback to hardcoded URL if environment not set (development fallback)
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://hwglhastcmqgrvvxmaae.supabase.co';
+
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xoYXN0Y21xZ3J2dnhtYWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MDMzNzgsImV4cCI6MjA4OTI3OTM3OH0.AygQOrS3YAvUgbjHW_ypCMWNqH7pIY6U6NUm7Pgt_Go';
 
 let supabaseInstance: SupabaseClient | null = null;
 
