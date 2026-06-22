@@ -80,63 +80,41 @@ export async function registerChef(data: {
 export async function loginChef(cin: string, password: string) {
   try {
     const trimmedCin = cin.trim();
-    const passwordHash = hashPassword(password);
 
-    console.log('[DEBUG] loginChef: Tentative de connexion');
+    console.log('[DEBUG] loginChef: Tentative de connexion via API');
     console.log('[DEBUG] CIN saisi:', `"${cin}"`, '| CIN trimé:', `"${trimmedCin}"`);
 
-    const { data: chef, error } = await supabase
-      .from('user_chefs')
-      .select('*')
-      .eq('cin', trimmedCin)
-      .maybeSingle();
+    // Use API endpoint instead of direct Supabase query (bypasses RLS)
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cin: trimmedCin,
+        password: password,
+      }),
+    });
 
-    console.log('[DEBUG] Réponse Supabase - error:', error);
-    console.log('[DEBUG] Réponse Supabase - chef données:', chef ? {
-      id: chef.id,
-      cin: chef.cin,
-      first_name: chef.first_name,
-      last_name: chef.last_name,
-      password_hash: chef.password_hash ? '[HASH EXISTS]' : '[NO HASH]'
-    } : 'null');
+    const result = await response.json();
 
-    if (error) {
-      console.error('[ERROR] Erreur Supabase:', error);
+    if (!response.ok) {
+      console.log('[ERROR] Login error:', result.error);
       return {
-        error: 'CIN ou mot de passe incorrect',
+        error: result.error || 'CIN ou mot de passe incorrect',
         data: null,
       };
     }
 
-    if (!chef) {
-      console.log('[DEBUG] Chef non trouvé avec le CIN:', trimmedCin);
-      return {
-        error: 'CIN ou mot de passe incorrect',
-        data: null,
-      };
-    }
-
-    console.log('[DEBUG] Chef trouvé:', chef.first_name, chef.last_name);
-    console.log('[DEBUG] Hash saisi:', passwordHash.substring(0, 10) + '...');
-    console.log('[DEBUG] Hash BD:', chef.password_hash.substring(0, 10) + '...');
-    console.log('[DEBUG] Les hashes correspondent?', chef.password_hash === passwordHash);
-
-    if (chef.password_hash !== passwordHash) {
-      console.log('[ERROR] Mot de passe incorrect');
-      return {
-        error: 'CIN ou mot de passe incorrect',
-        data: null,
-      };
-    }
-
-    console.log('[DEBUG] Authentification réussie! Création de la session...');
+    console.log('[DEBUG] Authentification réussie! Chef:', result.first_name, result.last_name);
+    console.log('[DEBUG] Création de la session...');
 
     // Store session
     const sessionData = {
-      id: chef.id,
-      cin: chef.cin,
-      firstName: chef.first_name,
-      lastName: chef.last_name,
+      id: result.id,
+      cin: result.cin,
+      firstName: result.first_name,
+      lastName: result.last_name,
     };
 
     localStorage.setItem('chef_session', JSON.stringify(sessionData));
@@ -144,7 +122,7 @@ export async function loginChef(cin: string, password: string) {
 
     return {
       error: null,
-      data: chef,
+      data: result,
     };
   } catch (err) {
     console.error('[ERROR] Exception dans loginChef:', err);

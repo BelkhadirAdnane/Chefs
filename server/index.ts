@@ -6,6 +6,7 @@ import { getMembers } from "./routes/members";
 import { getSessions } from "./routes/sessions";
 import { getReports } from "./routes/reports";
 import { createSession } from "./routes/sessions-create";
+import { loginChef } from "./routes/login";
 
 export function createServer() {
   const app = express();
@@ -24,6 +25,7 @@ export function createServer() {
   app.get("/api/demo", handleDemo);
 
   // Data endpoints (using Service Role Key for RLS bypass)
+  app.post("/api/login", loginChef);
   app.get("/api/members", getMembers);
   app.get("/api/sessions", getSessions);
   app.post("/api/sessions", createSession);
