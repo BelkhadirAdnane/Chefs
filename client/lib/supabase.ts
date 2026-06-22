@@ -1,13 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration. Check your .env file.');
+let supabaseInstance: SupabaseClient | null = null;
+
+function getSupabaseClient() {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('PLACEHOLDER')) {
+    throw new Error('Missing or invalid Supabase configuration. Check your environment variables.');
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  return supabaseInstance;
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Export a lazy-loaded proxy for backward compatibility
+export const supabase = {
+  from: (table: string) => getSupabaseClient().from(table),
+  auth: () => getSupabaseClient().auth,
+  storage: () => getSupabaseClient().storage,
+  channel: (name: string) => getSupabaseClient().channel(name),
+} as any;
 
 export type Database = {
   public: {
