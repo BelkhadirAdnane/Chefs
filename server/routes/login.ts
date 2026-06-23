@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto-js";
+import * as CryptoJS from "crypto-js";
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -28,7 +28,7 @@ interface LoginResponse {
 }
 
 function hashPassword(password: string): string {
-  return crypto.SHA256(password).toString();
+  return CryptoJS.SHA256(password).toString();
 }
 
 export const loginChef: RequestHandler = async (req, res) => {
@@ -43,6 +43,8 @@ export const loginChef: RequestHandler = async (req, res) => {
     const passwordHash = hashPassword(password);
     const trimmedCin = cin.trim();
 
+    console.log("[DEBUG] Login attempt for CIN:", trimmedCin);
+
     const { data: chef, error } = await supabase
       .from("user_chefs")
       .select("id, cin, first_name, last_name, password_hash")
@@ -50,7 +52,7 @@ export const loginChef: RequestHandler = async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      console.error("[ERROR] Supabase error:", error);
+      console.error("[ERROR] Supabase error:", error.message, error.code);
       return res.status(400).json({ error: "CIN or password incorrect" });
     }
 
@@ -60,7 +62,7 @@ export const loginChef: RequestHandler = async (req, res) => {
     }
 
     if (chef.password_hash !== passwordHash) {
-      console.log("[ERROR] Password mismatch");
+      console.log("[ERROR] Password mismatch for chef:", chef.cin);
       return res.status(401).json({ error: "CIN or password incorrect" });
     }
 
@@ -71,9 +73,11 @@ export const loginChef: RequestHandler = async (req, res) => {
       last_name: chef.last_name,
     };
 
+    console.log("[DEBUG] Login successful for chef:", response.first_name, response.last_name);
     res.status(200).json(response);
   } catch (error) {
-    console.error("[ERROR] Login failed:", error);
+    console.error("[ERROR] Login failed with exception:", error instanceof Error ? error.message : error);
+    console.error("[ERROR] Full error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
