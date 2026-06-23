@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { createClient } from "@supabase/supabase-js";
-import * as CryptoJS from "crypto-js";
+import crypto from "crypto-js";
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -41,7 +41,7 @@ interface LoginResponse {
 }
 
 function hashPassword(password: string): string {
-  return CryptoJS.SHA256(password).toString();
+  return crypto.SHA256(password).toString();
 }
 
 export const loginChef: RequestHandler = async (req, res) => {
