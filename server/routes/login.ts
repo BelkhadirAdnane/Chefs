@@ -46,21 +46,39 @@ function hashPassword(password: string): string {
 
 export const loginChef: RequestHandler = async (req, res) => {
   try {
+    console.log("[DEBUG] Login endpoint called");
     const { cin, password }: LoginRequest = req.body;
 
     if (!cin || !password) {
+      console.log("[DEBUG] Missing CIN or password");
       return res.status(400).json({ error: "CIN and password are required" });
     }
 
+    const trimmedCin = cin.trim();
+    console.log("[DEBUG] Login attempt for CIN:", trimmedCin);
+    console.log("[DEBUG] Hashing password...");
+
+    let passwordHash: string;
     try {
-      const supabase = getSupabaseClient();
-      const passwordHash = hashPassword(password);
-      const trimmedCin = cin.trim();
+      passwordHash = hashPassword(password);
+      console.log("[DEBUG] Password hashed successfully");
+    } catch (hashErr) {
+      console.error("[ERROR] Password hashing failed:", hashErr);
+      return res.status(500).json({ error: "Password processing error" });
+    }
 
-      console.log("[DEBUG] Login attempt for CIN:", trimmedCin);
-      console.log("[DEBUG] Supabase URL configured:", !!process.env.SUPABASE_URL);
-      console.log("[DEBUG] Service role key configured:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log("[DEBUG] Creating Supabase client...");
+    let supabase;
+    try {
+      supabase = getSupabaseClient();
+      console.log("[DEBUG] Supabase client created");
+    } catch (clientErr) {
+      console.error("[ERROR] Failed to create Supabase client:", clientErr);
+      return res.status(500).json({ error: "Database connection error" });
+    }
 
+    console.log("[DEBUG] Querying database for chef...");
+    try {
       const { data: chef, error } = await supabase
         .from("user_chefs")
         .select("*")
@@ -68,8 +86,8 @@ export const loginChef: RequestHandler = async (req, res) => {
         .maybeSingle();
 
       if (error) {
-        console.error("[ERROR] Supabase error:", error);
-        return res.status(400).json({ error: "CIN or password incorrect" });
+        console.error("[ERROR] Supabase query error:", error);
+        return res.status(401).json({ error: "CIN or password incorrect" });
       }
 
       if (!chef) {
@@ -77,8 +95,9 @@ export const loginChef: RequestHandler = async (req, res) => {
         return res.status(401).json({ error: "CIN or password incorrect" });
       }
 
+      console.log("[DEBUG] Chef found, verifying password");
       if (chef.password_hash !== passwordHash) {
-        console.log("[ERROR] Password mismatch for chef:", chef.cin);
+        console.log("[ERROR] Password mismatch");
         return res.status(401).json({ error: "CIN or password incorrect" });
       }
 
@@ -89,14 +108,14 @@ export const loginChef: RequestHandler = async (req, res) => {
         last_name: chef.last_name,
       };
 
-      console.log("[DEBUG] Login successful for chef:", response.first_name, response.last_name);
+      console.log("[DEBUG] Login successful for chef:", response.first_name);
       res.status(200).json(response);
-    } catch (supabaseError) {
-      console.error("[ERROR] Supabase client error:", supabaseError);
-      res.status(500).json({ error: "Internal server error" });
+    } catch (queryErr) {
+      console.error("[ERROR] Database query exception:", queryErr);
+      return res.status(500).json({ error: "Database error" });
     }
   } catch (error) {
-    console.error("[ERROR] Login failed with exception:", error instanceof Error ? error.message : String(error));
+    console.error("[ERROR] Login handler exception:", error instanceof Error ? error.message : String(error));
     res.status(500).json({ error: "Internal server error" });
   }
 };

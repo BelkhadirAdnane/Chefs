@@ -35,6 +35,11 @@ export function createServer() {
     });
   });
 
+  // Test endpoint to verify request is being received
+  app.post("/api/login-test", (_req, res) => {
+    res.json({ received: true, body: _req.body });
+  });
+
   // Data endpoints (using Service Role Key for RLS bypass)
   app.post("/api/login", loginChef);
   app.get("/api/members", getMembers);
