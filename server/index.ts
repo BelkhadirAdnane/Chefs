@@ -24,6 +24,17 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
 
+  // Debug endpoint
+  app.get("/api/health", (_req, res) => {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    res.json({
+      status: "ok",
+      supabaseUrl: supabaseUrl ? supabaseUrl.substring(0, 30) + "..." : "NOT SET",
+      hasServiceKey: !!supabaseServiceKey,
+    });
+  });
+
   // Data endpoints (using Service Role Key for RLS bypass)
   app.post("/api/login", loginChef);
   app.get("/api/members", getMembers);
