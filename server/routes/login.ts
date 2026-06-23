@@ -6,13 +6,26 @@ function getSupabaseClient() {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+  console.log("[DEBUG] getSupabaseClient - VITE_SUPABASE_URL:", process.env.VITE_SUPABASE_URL ? "SET" : "NOT SET");
+  console.log("[DEBUG] getSupabaseClient - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
+  console.log("[DEBUG] getSupabaseClient - SUPABASE_SERVICE_ROLE_KEY:", supabaseServiceKey ? "SET" : "NOT SET");
+
   if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error("Missing Supabase configuration in server environment");
+    const errorMsg = `Missing Supabase configuration. URL: ${supabaseUrl ? 'SET' : 'NOT SET'}, Key: ${supabaseServiceKey ? 'SET' : 'NOT SET'}`;
+    console.error("[ERROR]", errorMsg);
+    throw new Error(errorMsg);
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false },
-  });
+  try {
+    const client = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    });
+    console.log("[DEBUG] Supabase client created successfully");
+    return client;
+  } catch (err) {
+    console.error("[ERROR] Failed to create Supabase client:", err);
+    throw err;
+  }
 }
 
 interface LoginRequest {
