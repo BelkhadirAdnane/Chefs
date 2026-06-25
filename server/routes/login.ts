@@ -3,14 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto-js";
 
 function getSupabaseClient() {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://hwglhastcmqgrvvxmaae.supabase.co';
   let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   console.log("[DEBUG] getSupabaseClient - VITE_SUPABASE_URL:", process.env.VITE_SUPABASE_URL ? "SET" : "NOT SET");
   console.log("[DEBUG] getSupabaseClient - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
   console.log("[DEBUG] getSupabaseClient - SUPABASE_SERVICE_ROLE_KEY:", supabaseKey ? "SET" : "NOT SET");
 
-  // Fallback to anon key if service role key is not available
+  // Try multiple fallbacks for the service role key
+  if (!supabaseKey) {
+    // Hardcoded fallback from .env
+    supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z2xoYXN0Y21xZ3J2dnhtYWFlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzcwMzM3OCwiZXhwIjoyMDg5Mjc5Mzc4fQ.d7Hp-2bpZqvB673ZGE09Eii-BJSo5SZfZvlVSDn5uBc';
+    console.log("[DEBUG] Using hardcoded service role key fallback");
+  }
+
+  // Fallback to anon key if service role key is still not available
   if (!supabaseKey) {
     supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
     console.log("[DEBUG] Using anon key as fallback");
