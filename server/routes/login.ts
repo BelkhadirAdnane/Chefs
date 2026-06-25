@@ -4,20 +4,26 @@ import crypto from "crypto-js";
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   console.log("[DEBUG] getSupabaseClient - VITE_SUPABASE_URL:", process.env.VITE_SUPABASE_URL ? "SET" : "NOT SET");
   console.log("[DEBUG] getSupabaseClient - SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "NOT SET");
-  console.log("[DEBUG] getSupabaseClient - SUPABASE_SERVICE_ROLE_KEY:", supabaseServiceKey ? "SET" : "NOT SET");
+  console.log("[DEBUG] getSupabaseClient - SUPABASE_SERVICE_ROLE_KEY:", supabaseKey ? "SET" : "NOT SET");
 
-  if (!supabaseUrl || !supabaseServiceKey) {
-    const errorMsg = `Missing Supabase configuration. URL: ${supabaseUrl ? 'SET' : 'NOT SET'}, Key: ${supabaseServiceKey ? 'SET' : 'NOT SET'}`;
+  // Fallback to anon key if service role key is not available
+  if (!supabaseKey) {
+    supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    console.log("[DEBUG] Using anon key as fallback");
+  }
+
+  if (!supabaseUrl || !supabaseKey) {
+    const errorMsg = `Missing Supabase configuration. URL: ${supabaseUrl ? 'SET' : 'NOT SET'}, Key: ${supabaseKey ? 'SET' : 'NOT SET'}`;
     console.error("[ERROR]", errorMsg);
     throw new Error(errorMsg);
   }
 
   try {
-    const client = createClient(supabaseUrl, supabaseServiceKey, {
+    const client = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false },
     });
     console.log("[DEBUG] Supabase client created successfully");
