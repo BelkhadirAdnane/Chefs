@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit, Calendar, MapPin, X } from 'lucide-react';
 import SessionForm5W from '../components/SessionForm5W';
-import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -29,19 +28,14 @@ export default function Sessions() {
     const fetchSessions = async () => {
       try {
         setIsLoading(true);
-        console.log('[DEBUG] Fetching sessions from Supabase...');
-        const { data, error } = await supabase
-          .from('sessions')
-          .select('*')
-          .order('start_date', { ascending: false });
+        console.log('[DEBUG] Fetching sessions from API...');
+        const response = await fetch('/api/sessions');
 
-        console.log('[DEBUG] Sessions response - data:', data, 'error:', error);
-
-        if (error) {
-          console.error('[ERROR] Supabase error:', error.message, error.code);
-          throw error;
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
         }
 
+        const data: Session[] = await response.json();
         console.log('[DEBUG] Sessions loaded:', data?.length || 0, 'items');
         setSessions(data || []);
       } catch (error) {
@@ -53,28 +47,11 @@ export default function Sessions() {
 
     fetchSessions();
 
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .channel('sessions_updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'sessions' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setSessions((prev) => [payload.new as Session, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setSessions((prev) =>
-              prev.map((s) => (s.id === payload.new.id ? (payload.new as Session) : s))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setSessions((prev) => prev.filter((s) => s.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
+    // Poll for updates every 5 seconds as fallback
+    const interval = setInterval(fetchSessions, 5000);
 
     return () => {
-      subscription.unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 
@@ -124,11 +101,43 @@ export default function Sessions() {
                 {filteredSessions.length} séance{filteredSessions.length !== 1 ? 's' : ''} au total
               </p>
             </div>
-            <button className="bg-gradient-to-r from-shm-red to-shm-purple text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center gap-2">
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-gradient-to-r from-shm-red to-shm-purple text-white font-semibold py-2 px-4 rounded-lg hover:shadow-lg transition-all duration-200 flex items-center gap-2">
               <Plus size={20} />
               Programmer une Séance
             </button>
           </div>
+
+          {/* Form Section */}
+          {showForm && (
+            <div className="mb-8 p-6 bg-white rounded-lg shadow-md border-l-4 border-shm-red">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Ajouter une Séance</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <X size={24} className="text-gray-600" />
+                </button>
+              </div>
+              <SessionForm5W
+                onSuccess={() => {
+                  setShowForm(false);
+                  // Refresh sessions list
+                  const fetchSessions = async () => {
+                    const response = await fetch('/api/sessions');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setSessions(data || []);
+                    }
+                  };
+                  fetchSessions();
+                }}
+                onCancel={() => setShowForm(false)}
+              />
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="mb-6">

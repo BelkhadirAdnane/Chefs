@@ -2,6 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { getMembers } from "./routes/members";
+import { getSessions } from "./routes/sessions";
+import { getReports } from "./routes/reports";
+import { createSession } from "./routes/sessions-create";
+import { loginChef } from "./routes/login";
 
 export function createServer() {
   const app = express();
@@ -18,6 +23,29 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Debug endpoint
+  app.get("/api/health", (_req, res) => {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    res.json({
+      status: "ok",
+      supabaseUrl: supabaseUrl ? supabaseUrl.substring(0, 30) + "..." : "NOT SET",
+      hasServiceKey: !!supabaseServiceKey,
+    });
+  });
+
+  // Test endpoint to verify request is being received
+  app.post("/api/login-test", (_req, res) => {
+    res.json({ received: true, body: _req.body });
+  });
+
+  // Data endpoints (using Service Role Key for RLS bypass)
+  app.post("/api/login", loginChef);
+  app.get("/api/members", getMembers);
+  app.get("/api/sessions", getSessions);
+  app.post("/api/sessions", createSession);
+  app.get("/api/reports", getReports);
 
   return app;
 }

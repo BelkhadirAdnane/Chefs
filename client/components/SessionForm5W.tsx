@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Upload, X, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getCurrentChef } from '../lib/authService';
+import { toast } from 'sonner';
 
 interface SessionForm5WProps {
   onSuccess?: () => void;
@@ -77,7 +79,8 @@ export default function SessionForm5W({ onSuccess, onCancel }: SessionForm5WProp
         return;
       }
 
-      const userId = 'anonymous'; // À remplacer par l'ID utilisateur connecté
+      const currentChef = getCurrentChef();
+      const userId = currentChef?.id || 'anonymous';
 
       // Upload images to Supabase storage if any
       let imageUrls: string[] = [];
@@ -89,37 +92,40 @@ export default function SessionForm5W({ onSuccess, onCancel }: SessionForm5WProp
             .upload(`sessions/${fileName}`, image);
 
           if (uploadError) throw uploadError;
-          
+
           const { data: publicUrl } = supabase.storage
             .from('session-images')
             .getPublicUrl(`sessions/${fileName}`);
-          
+
           imageUrls.push(publicUrl.publicUrl);
         }
       }
 
-      // Save session to Supabase
-      const { data, error: insertError } = await supabase
-        .from('sessions')
-        .insert({
+      // Save session via API endpoint (uses Service Role Key to bypass RLS)
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           user_id: userId,
           title: formData.title, // Quoi?
           location: formData.location, // Où?
           start_date: formData.date, // Quand?
-          description: JSON.stringify({
-            category: formData.category, // Qui?
-            objective: formData.objective, // Pourquoi?
-            method: formData.method, // Comment?
-            images: imageUrls,
-          }),
-          responsible: 'Chef',
-          created_at: new Date().toISOString(),
-        })
-        .select();
+          category: formData.category, // Qui?
+          objective: formData.objective, // Pourquoi?
+          method: formData.method, // Comment?
+          images: imageUrls,
+        }),
+      });
 
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save session');
+      }
 
       setSuccess(true);
+      toast.success('Séance enregistrée avec succès!');
       setFormData({
         title: '',
         location: '',
@@ -136,7 +142,9 @@ export default function SessionForm5W({ onSuccess, onCancel }: SessionForm5WProp
       }
     } catch (err) {
       console.error('[ERROR] Failed to save session:', err);
-      setError('Erreur lors de l\'enregistrement de la séance');
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement de la séance';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

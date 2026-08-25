@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Trash2, Edit, Eye, Download } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
@@ -13,6 +12,7 @@ interface Report {
   content: string;
   patrol: string | null;
   activity: string | null;
+  pdf_url?: string | null;
   created_at: string;
 }
 
@@ -27,15 +27,18 @@ export default function Reports() {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('reports')
-          .select('*')
-          .order('created_at', { ascending: false });
+        console.log('[DEBUG] Fetching reports from API...');
+        const response = await fetch('/api/reports');
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data: Report[] = await response.json();
+        console.log('[DEBUG] Reports loaded:', data?.length || 0, 'items');
         setReports(data || []);
       } catch (error) {
-        console.error('Error fetching reports:', error);
+        console.error('[ERROR] Failed to fetch reports:', error);
       } finally {
         setIsLoading(false);
       }
@@ -43,28 +46,11 @@ export default function Reports() {
 
     fetchReports();
 
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .channel('reports_updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reports' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setReports((prev) => [payload.new as Report, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setReports((prev) =>
-              prev.map((r) => (r.id === payload.new.id ? (payload.new as Report) : r))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setReports((prev) => prev.filter((r) => r.id !== payload.old.id));
-          }
-        }
-      )
-      .subscribe();
+    // Poll for updates every 5 seconds as fallback
+    const interval = setInterval(fetchReports, 5000);
 
     return () => {
-      subscription.unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 
@@ -159,34 +145,35 @@ export default function Reports() {
                       {report.content}
                     </p>
                     <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          // Assuming report.content contains PDF URL
-                          if (report.content.includes('http')) {
-                            navigate(`/reports/${report.id}?url=${encodeURIComponent(report.content)}`);
-                          }
-                        }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Voir le PDF"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (report.content.includes('http')) {
-                            const link = document.createElement('a');
-                            link.href = report.content;
-                            link.download = `rapport-${report.id}.pdf`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }
-                        }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
-                        title="Télécharger le PDF"
-                      >
-                        <Download size={18} />
-                      </button>
+                      {(report.pdf_url || report.content?.includes('http')) && (
+                        <>
+                          <button
+                            onClick={() => {
+                              const url = report.pdf_url || report.content;
+                              navigate(`/reports/${report.id}?url=${encodeURIComponent(url)}`);
+                            }}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Voir le PDF"
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const url = report.pdf_url || report.content;
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.download = `rapport-${report.id}.pdf`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+                            title="Télécharger le PDF"
+                          >
+                            <Download size={18} />
+                          </button>
+                        </>
+                      )}
                       <button className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Supprimer">
                         <Trash2 size={18} />
                       </button>
